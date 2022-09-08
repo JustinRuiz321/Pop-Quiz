@@ -13,13 +13,13 @@ const result = document.getElementById("result");
 const scoreView = document.getElementById("scoreView");
 const score = document.getElementById("finalScore");
 const submitButton = document.getElementById("submitButton");
-const userName = document.getElementById("userName");
+const nameinfo = document.getElementById("userName");
 const prevScoresPage = document.getElementById("prevScoresPage");
 const newScores = document.getElementById("newScores");
 const returnButton = document.getElementById("returnButton")
 
-var secondsLeft = 60;
-var timeleft = 0;
+var secondsLeft;
+var timeleft;
 
 const quizQuestions = [
     {
@@ -62,5 +62,143 @@ const quizQuestions = [
         options: ["Reserved Words" , "Favorites" , "Constants" , "Concrete Terms"],
         correctAnswer: 0
     }
-
 ];
+
+var amountCorrect = 0;
+
+startButton.addEventListener('click', startQuiz);
+
+function questionCycle() {
+    question.textContent = quizQuestions[quizList].question;
+    answer1.textContent = quizQuestions[quizList].options[0];
+    answer2.textContent = quizQuestions[quizList].options[1];
+    answer3.textContent = quizQuestions[quizList].options[2];
+    answer4.textContent = quizQuestions[quizList].options[3];
+};
+
+function startQuiz() {
+
+    quizList = 0;
+    secondsLeft = 60;
+    timeLeft.textContent = secondsLeft;
+
+    questionCycle();
+
+    start.style.display = "none";
+    answers.style.display = "block";
+    seconds.style.display = "block";
+
+    var interval = setInterval(function () {
+        secondsLeft--;
+        timeLeft.textContent = secondsLeft
+        if (secondsLeft === 0) {
+            clearInterval(interval);
+            if (quizList < quizQuestions.length - 1) {
+                quizOver();
+            }
+        }
+    }, 1000);
+};
+
+function choiceA() { 
+    correctChoice(0); 
+};
+function choiceB() { 
+    correctChoice(1); 
+};
+function choiceC() { 
+    correctChoice(2); 
+};
+function choiceD() { 
+    correctChoice(3); 
+};
+
+answer1.addEventListener("click", choiceA);
+answer2.addEventListener("click", choiceB);
+answer3.addEventListener("click", choiceC);
+answer4.addEventListener("click", choiceD);
+
+function correctChoice(correctAnswer) {
+    result.style.display ="block";
+    if (quizQuestions[quizList].correctAnswer === correctAnswer) {
+        amountCorrect++;
+        result.textContent ="Correct!😉"
+    } else {
+        timeLeft.textContent = secondsLeft;
+        result.textContent ="Incorrect😔"
+    }
+    quizList++
+    if (quizList < quizQuestions.length) {
+        questionCycle();
+    } else {
+        quizOver();
+    }
+};
+
+function quizOver() {
+    answers.style.display = "none";
+    start.style.display = "none";
+    scoreView.style.display = "block";
+    score.textContent = amountCorrect;
+}
+
+submitButton.addEventListener("click", function (event) { 
+    savedScores(event); 
+});
+
+var storingScores = localStorage.getItem("high scores")
+var scoreParse= JSON.parse(storingScores);
+
+function savedScores(event) {
+    event.preventDefault();
+    if (nameinfo.value === "") {
+        window.alert("Please enter username to save score");
+        return;
+    }
+    prevScoresPage.style.display = "block";
+
+    var scoresList;
+    
+    if (storingScores === null) {
+        scoresList = [];
+    } else {
+        scoresList = JSON.parse(storingScores)
+    }
+    var userInput = {
+        nameinfo: nameinfo.value,
+        score: score.textContent
+    };
+
+    scoresList.push(userInput);
+
+    var scoreStorage = JSON.stringify(scoresList);
+    window.localStorage.setItem("high scores", scoreStorage);
+
+    seeScores();
+}
+
+submitButton.addEventListener("click", function (event) { 
+    savedScores(event); 
+});
+
+var i = 0;
+
+function seeScores() {
+    start.style.display = "none";
+    prevScoresPage.style.display = "block";
+    scoreView.style.display = "none";
+
+    if (scoreParse === null) {
+        return;
+    }
+    for (; i < storingScores.length; i++) {
+        var newHighScore = document.createElement("ul");
+        newHighScore.innerHTML = scoreParse[i].nameinfo + "'s score is " + scoreParse[i].score;
+        newScores.appendChild(newHighScore);
+    }
+}
+prevScores.addEventListener("click", function (event) {
+    seeScores(event);
+});
+
+
